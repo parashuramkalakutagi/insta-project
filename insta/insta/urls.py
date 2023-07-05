@@ -10,6 +10,7 @@ accounts = DefaultRouter()
 
 accounts.register('profile',Profile_Register,basename='profile')
 accounts.register('Login',LoginViewset,basename='Login')
+accounts.register('LogOut',LogOutViewset,basename='LogOut')
 
 
 urlpatterns = [
