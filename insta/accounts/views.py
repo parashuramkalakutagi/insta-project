@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from .emails import send_via_mail
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -67,6 +69,83 @@ class LogOutViewset(viewsets.ViewSet):
         except Exception as e:
             print(e)
             return Response({'msg':'something went wrong.'},status=HTTP_400_BAD_REQUEST)
+
+
+class ForgotPasswordViewset(viewsets.ViewSet):
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            if data.get('email') is None:
+                return Response({'msg':'email is required...'},status=HTTP_400_BAD_REQUEST)
+            sr = ForgotPasswordSerializer(data=data)
+            if not sr.is_valid():
+                return Response(sr.errors,status=HTTP_400_BAD_REQUEST)
+            send_via_mail(sr.validated_data['email'])
+            return Response({'msg':'otp sent on email ..'},status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong '},status=HTTP_400_BAD_REQUEST)
+
+class verifyOtpView(viewsets.ViewSet):
+
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            if data.get('email') is None:
+                return Response({'msg': 'email is required..'}, status=HTTP_400_BAD_REQUEST)
+            user = Profile.objects.get(email=data.get('email'))
+            if user.otp != data.get('otp'):
+                return Response({'msg': 'wrong otp  ...'}, status=HTTP_400_BAD_REQUEST)
+            if user.otp == data.get('otp'):
+                return Response({'msg': 'otp is macthed'}, status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong ...'},status=HTTP_400_BAD_REQUEST)
+
+
+
+class NewPassword(viewsets.ViewSet):
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            if data['password'] is None:
+                return Response({'password is required'},status=HTTP_400_BAD_REQUEST)
+            if data['confirm_password'] is None:
+                return Response({'msg':'confirm password is required'},status=HTTP_400_BAD_REQUEST)
+
+            if  data['password'] != data['confirm_password'] :
+                return Response({'msg':'password and confirm password should be same '})
+
+            user = Profile.objects.get(email__exact= data['email'])
+            user.password = data.get('password')
+            user.confirm_password = data.get('confirm_password')
+            user.save()
+
+            return Response({'msg':'password is changed '},status=HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

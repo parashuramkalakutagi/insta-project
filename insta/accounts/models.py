@@ -15,6 +15,7 @@ class Profile(AbstractUser):
     confirm_password = models.CharField(max_length=10)
     gender = models.CharField(max_length=20,choices=(("male","Male"),("Female","Female")))
     profile_photo = models.ImageField(upload_to='Profile-images',null=True,blank=True)
+    otp = models.CharField(max_length=6,null=True,blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

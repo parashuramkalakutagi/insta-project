@@ -44,6 +44,19 @@ class LoginSerializer(serializers.ModelSerializer):
             'access': str(refresh.access_token),
         }
 
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    class Meta:
+        model = Profile
+        fields = ['email']
+
+    def validate(self, data):
+        email = data['email']
+
+        obj = Profile.objects.filter(email=email)
+        if not obj.exists():
+            raise serializers.ValidationError('email is not valid')
+        return data
 
 
 
