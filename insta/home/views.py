@@ -66,22 +66,43 @@ class POST_LIST(viewsets.ViewSet):
 
 
 
-# class VideoPostViewset(viewsets.ViewSet):
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-#
-#     def create(self, request, *args, **kwargs):
-#         data = request.data
-#         VideoPost.objects.create(user_id=)
+class VideoPostViewset(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            VideoPost.objects.create(
+                user_id=request.user,
+                Profile_id=Profile_Page.objects.get(uuid=data.get('profile_id')),
+                file=data.get('file')
+            )
+            return Response({'msg': 'video posted..'})
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong...'})
+
+class HighlightesView(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            hightlites.objects.create(
+                user_id=request.user,
+                Profile_id=Profile_id.objects.get(uuid=data.get('Profile_id')),
+                stories=data.get('file')
+            )
+            return Response({'msg': 'stories added ...'},status=HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong ..'},status=HTTP_400_BAD_REQUEST)
 
 
 
 
-
-
-        # except Exception as e:
-        #     print(e)
-        #     return Response({'msg':'something went wrong '},status=HTTP_400_BAD_REQUEST)
 
 
 

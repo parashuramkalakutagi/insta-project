@@ -108,6 +108,7 @@ class NewPassword(viewsets.ViewSet):
     def create(self, request, *args, **kwargs):
         try:
             data = request.data
+
             if data['password'] is None:
                 return Response({'password is required'},status=HTTP_400_BAD_REQUEST)
             if data['confirm_password'] is None:

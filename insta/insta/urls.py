@@ -21,7 +21,8 @@ home = DefaultRouter()
 home.register('ProfileView',ProfileView,basename='ProfileView')
 home.register('post',PostView,basename='PostView')
 home.register('POST_LIST',POST_LIST,basename='POST_LIST')
-# home.register('VideoPostViewset',VideoPostViewset,basename='VideoPostViewset')
+home.register('VideoPostViewset',VideoPostViewset,basename='VideoPostViewset')
+home.register('HighlightesView',HighlightesView,basename='HighlightesView')
 
 
 urlpatterns = [
