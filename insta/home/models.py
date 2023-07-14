@@ -46,7 +46,8 @@ class Likes(models.Model):
 
 class Followers(models.Model):
     user_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
-    profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE)
+    followers_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE,related_name='followers_id')
+    profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE,related_name='profile_id')
 
 
 

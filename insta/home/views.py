@@ -147,9 +147,34 @@ class LikeCount(viewsets.ViewSet):
 
 
 
+class FollowersViewset(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            user_id = request.user
+            if Followers.objects.filter(user_id = user_id,
+                                        followers_id = data.get('followers_id'),
+                                        profile_id = data.get('profile_id')).exists():
+                return Response({'msg':'this user alredy follower '},status=HTTP_429_TOO_MANY_REQUESTS)
+
+            Followers.objects.create(user_id = Profile.objects.get(username = user_id),
+                                     followers_id = Profile_Page.objects.get(uuid = data.get('followers_id')),
+                                     profile_id = Profile_Page.objects.get(uuid = data.get('profile_id')))
+
+            return Response({'msg':'followed...!'},status=HTTP_201_CREATED)
 
 
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
 
+class FollowersCount(viewsets.ViewSet):
+    def list(self,request,*args,**kwargs):
+        obj = Followers.objects.values('profile_id').annotate(count=Count('user_id'))
+        return Response(obj)
 
 
 
