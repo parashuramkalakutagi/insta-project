@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import *
 from .serializer import *
 from rest_framework.status import *
+from django.db.models import Count
 
 
 class ProfileView(viewsets.ViewSet):
@@ -101,7 +102,48 @@ class HighlightesView(viewsets.ViewSet):
             return Response({'msg':'something went wrong ..'},status=HTTP_400_BAD_REQUEST)
 
 
+class LikeViewset(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
+    def create(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            user_id = request.user
+            if  Likes.objects.filter(user_id = user_id,
+                                     profile_id = data.get('profile_id'),
+                                     post_id = data.get('post_id')).exists():
+                return Response({'msg': 'alredy this user is liked post'}, status=HTTP_400_BAD_REQUEST)
+
+            Likes.objects.create(user_id = Profile.objects.get(username = user_id),
+                                 profile_id = Profile_Page.objects.get(uuid = data.get('profile_id')),
+                                 post_id = Posts.objects.get(uuid = data.get('post_id')))
+
+            return Response({'msg':' post is liked'})
+
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong..'},status=HTTP_400_BAD_REQUEST)
+
+    def delete(self,request,*args,**kwargs):
+        try:
+
+            data = request.data
+            unlike = Likes.objects.filter(post_id = data.get('post_id'))
+            if not unlike.exists():
+                return Response({'msg':'alredy unliked the post'},status=HTTP_400_BAD_REQUEST)
+            unlike[0].delete()
+            return Response({'msg':'unliked...!'},status=HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
+
+class LikeCount(viewsets.ViewSet):
+
+    def list(self, request):
+        obj = Likes.objects.values('post_id').annotate(count=Count('user_id'))
+        return Response(obj)
 
 
 

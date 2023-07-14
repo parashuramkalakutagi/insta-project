@@ -20,13 +20,14 @@ class Profile_Page(BaseModel):
 
     def __str__(self):
         return self.name
+
+
 class Posts(BaseModel):
     user_id  = models.ForeignKey(Profile,on_delete=models.CASCADE)
     Profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE)
     post = models.ImageField(upload_to='posts')
 
-    def __str__(self):
-        return self.Profile_id
+
 
 class VideoPost(BaseModel):
     user_id = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -37,6 +38,18 @@ class hightlites(BaseModel):
     user_id = models.ForeignKey(Profile, on_delete=models.CASCADE)
     Profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE)
     stories = models.FileField(upload_to='STORIES')
+
+class Likes(models.Model):
+    user_id = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile_id = models.ForeignKey(Profile_Page, on_delete=models.CASCADE)
+    post_id = models.ForeignKey(Posts,on_delete=models.CASCADE)
+
+class Followers(models.Model):
+    user_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
+    profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE)
+
+
+
 
 
 

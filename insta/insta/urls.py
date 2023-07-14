@@ -23,6 +23,8 @@ home.register('post',PostView,basename='PostView')
 home.register('POST_LIST',POST_LIST,basename='POST_LIST')
 home.register('VideoPostViewset',VideoPostViewset,basename='VideoPostViewset')
 home.register('HighlightesView',HighlightesView,basename='HighlightesView')
+home.register('LikeViewset',LikeViewset,basename='LikeViewset')
+home.register('LikeCount',LikeCount,basename='LikeCount')
 
 
 urlpatterns = [
