@@ -111,6 +111,7 @@ class NewPassword(viewsets.ViewSet):
 
             if data['password'] is None:
                 return Response({'password is required'},status=HTTP_400_BAD_REQUEST)
+
             if data['confirm_password'] is None:
                 return Response({'msg':'confirm password is required'},status=HTTP_400_BAD_REQUEST)
 
@@ -121,8 +122,8 @@ class NewPassword(viewsets.ViewSet):
             user.password = data.get('password')
             user.confirm_password = data.get('confirm_password')
             user.save()
-
             return Response({'msg':'password is changed '},status=HTTP_201_CREATED)
+
         except Exception as e:
             print(e)
             return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)

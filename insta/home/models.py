@@ -44,12 +44,20 @@ class Likes(models.Model):
     profile_id = models.ForeignKey(Profile_Page, on_delete=models.CASCADE)
     post_id = models.ForeignKey(Posts,on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'{self.user_id} is liked this post >>  {self.post_id}'
+
 class Followers(models.Model):
     user_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
     followers_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE,related_name='followers_id')
-    profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE,related_name='profile_id')
 
+    def __str__(self):
+        return f'{self.user_id} is following {self.followers_id}'
 
+class Comments(models.Model):
+    user_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
+    post_id = models.ForeignKey(Posts,on_delete=models.CASCADE)
+    message = models.CharField(max_length=150)
 
 
 

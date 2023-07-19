@@ -27,10 +27,17 @@ home.register('LikeViewset',LikeViewset,basename='LikeViewset')
 home.register('LikeCount',LikeCount,basename='LikeCount')
 home.register('FollowersViewset',FollowersViewset,basename='FollowersViewset')
 home.register('FollowersCount',FollowersCount,basename='FollowersCount')
+home.register('FollowingCount',FollowingViewSet,basename='FollowingCount')
+home.register('CommentsViewset',CommentsViewset,basename='CommentsViewset')
+
+
+
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('acc/',include(accounts.urls)),
     path('home/',include(home.urls)),
+    path('profile_list/',Profiles_list.as_view()),
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

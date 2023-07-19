@@ -44,6 +44,7 @@ class LoginSerializer(serializers.ModelSerializer):
             'access': str(refresh.access_token),
         }
 
+
 class ForgotPasswordSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     class Meta:
@@ -57,6 +58,10 @@ class ForgotPasswordSerializer(serializers.ModelSerializer):
         if not obj.exists():
             raise serializers.ValidationError('email is not valid')
         return data
+
+
+
+
 
 
 

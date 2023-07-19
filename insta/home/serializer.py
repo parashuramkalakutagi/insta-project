@@ -25,3 +25,8 @@ class VideoPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoPost
         fields = ['Profile_id','file']
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comments
+        fields = '__all__'

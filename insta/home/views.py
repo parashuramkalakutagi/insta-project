@@ -2,60 +2,76 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny,IsAuthenticatedOrReadOnly
 from .models import *
 from .serializer import *
 from rest_framework.status import *
 from django.db.models import Count
+from rest_framework import generics
+from rest_framework.mixins import UpdateModelMixin
+from rest_framework.generics import GenericAPIView
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import UpdateAPIView
 
 
 class ProfileView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def list(self,request,*args,**kwargs):
+
+
+    def list(self, request, *args, **kwargs):
         obj = Profile_Page.objects.filter(user=request.user)
-        sr = Profile_Page_Serializer(obj,many=True)
-        return Response(sr.data,status=HTTP_200_OK)
+        sr = Profile_Page_Serializer(obj, many=True)
+        return Response(sr.data, status=HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         data = request.data
         data['user'] = request.user.id
         sr = Profile_Page_Serializer(data=data)
         if not sr.is_valid():
-            return Response({'msg':sr.errors},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': sr.errors}, status=HTTP_400_BAD_REQUEST)
         sr.save()
-        return Response(sr.data,status=HTTP_201_CREATED)
+        return Response(sr.data, status=HTTP_201_CREATED)
+
+
+
+
+
+
+
 
 
 class PostView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def list(self,request, *args, **kwargs):
-        obj = Posts.objects.filter(user_id = request.user)
+    def list(self, request, *args, **kwargs):
+        obj = Posts.objects.filter(user_id=request.user)
         sr = PostSerializer(obj, many=True)
-        return Response(sr.data,status=HTTP_200_OK)
+        return Response(sr.data, status=HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         try:
             data = request.data
             user = request.user
 
-            Posts.objects.create(Profile_id=Profile_Page.objects.get(uuid= data.get('Profile_id'))
-                                       ,user_id = Profile.objects.get(username = user),
-                                       post = data.get('post'))
+            Posts.objects.create(Profile_id=Profile_Page.objects.get(uuid=data.get('Profile_id'))
+                                 , user_id=Profile.objects.get(username=user),
+                                 post=data.get('post'))
 
             return Response({'msg': 'Post uploded'}, status=HTTP_201_CREATED)
 
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong '},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'something went wrong '}, status=HTTP_400_BAD_REQUEST)
 
 
 class POST_LIST(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    def list(self,request,*args,**kwargs):
+
+    def list(self, request, *args, **kwargs):
         try:
             obj = Posts.objects.all()
             sr = PostSerializer(obj, many=True)
@@ -63,8 +79,7 @@ class POST_LIST(viewsets.ViewSet):
 
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong '},status=HTTP_400_BAD_REQUEST)
-
+            return Response({'msg': 'something went wrong '}, status=HTTP_400_BAD_REQUEST)
 
 
 class VideoPostViewset(viewsets.ViewSet):
@@ -82,13 +97,14 @@ class VideoPostViewset(viewsets.ViewSet):
             return Response({'msg': 'video posted..'})
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong...'})
+            return Response({'msg': 'something went wrong...'})
+
 
 class HighlightesView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def create(self,request,*args,**kwargs):
+    def create(self, request, *args, **kwargs):
         try:
             data = request.data
             hightlites.objects.create(
@@ -96,85 +112,156 @@ class HighlightesView(viewsets.ViewSet):
                 Profile_id=Profile_id.objects.get(uuid=data.get('Profile_id')),
                 stories=data.get('file')
             )
-            return Response({'msg': 'stories added ...'},status=HTTP_201_CREATED)
+            return Response({'msg': 'stories added ...'}, status=HTTP_201_CREATED)
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong ..'},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'something went wrong ..'}, status=HTTP_400_BAD_REQUEST)
 
 
 class LikeViewset(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def create(self,request,*args,**kwargs):
+    def create(self, request, *args, **kwargs):
         try:
             data = request.data
             user_id = request.user
-            if  Likes.objects.filter(user_id = user_id,
-                                     profile_id = data.get('profile_id'),
-                                     post_id = data.get('post_id')).exists():
+            if Likes.objects.filter(user_id=user_id,
+                                    profile_id=data.get('profile_id'),
+                                    post_id=data.get('post_id')).exists():
                 return Response({'msg': 'alredy this user is liked post'}, status=HTTP_400_BAD_REQUEST)
 
-            Likes.objects.create(user_id = Profile.objects.get(username = user_id),
-                                 profile_id = Profile_Page.objects.get(uuid = data.get('profile_id')),
-                                 post_id = Posts.objects.get(uuid = data.get('post_id')))
+            Likes.objects.create(user_id=Profile.objects.get(username=user_id),
+                                 profile_id=Profile_Page.objects.get(uuid=data.get('profile_id')),
+                                 post_id=Posts.objects.get(uuid=data.get('post_id')))
 
-            return Response({'msg':' post is liked'})
+            return Response({'msg': ' post is liked'})
 
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong..'},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'something went wrong..'}, status=HTTP_400_BAD_REQUEST)
 
-    def delete(self,request,*args,**kwargs):
+    def delete(self, request, *args, **kwargs):
         try:
 
             data = request.data
-            unlike = Likes.objects.filter(post_id = data.get('post_id'))
+            unlike = Likes.objects.filter(post_id=data.get('post_id'))
             if not unlike.exists():
-                return Response({'msg':'alredy unliked the post'},status=HTTP_400_BAD_REQUEST)
+                return Response({'msg': 'alredy unliked the post'}, status=HTTP_400_BAD_REQUEST)
             unlike[0].delete()
-            return Response({'msg':'unliked...!'},status=HTTP_200_OK)
+            return Response({'msg': 'unliked...!'}, status=HTTP_200_OK)
 
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'something went wrong'}, status=HTTP_400_BAD_REQUEST)
+
 
 class LikeCount(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def list(self, request):
         obj = Likes.objects.values('post_id').annotate(count=Count('user_id'))
         return Response(obj)
 
 
-
 class FollowersViewset(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def create(self,request,*args,**kwargs):
+    def create(self, request, *args, **kwargs):
         try:
             data = request.data
             user_id = request.user
-            if Followers.objects.filter(user_id = user_id,
-                                        followers_id = data.get('followers_id'),
-                                        profile_id = data.get('profile_id')).exists():
-                return Response({'msg':'this user alredy follower '},status=HTTP_429_TOO_MANY_REQUESTS)
+            if Followers.objects.filter(user_id=user_id,
+                                        followers_id=data.get('followers_id')).exists():
+                return Response({'msg': 'this user alredy follower '}, status=HTTP_429_TOO_MANY_REQUESTS)
 
-            Followers.objects.create(user_id = Profile.objects.get(username = user_id),
-                                     followers_id = Profile_Page.objects.get(uuid = data.get('followers_id')),
-                                     profile_id = Profile_Page.objects.get(uuid = data.get('profile_id')))
+            Followers.objects.create(
+                user_id=Profile.objects.get(username=user_id),
+                followers_id=Profile_Page.objects.get(uuid=data.get('followers_id')),
+            )
 
-            return Response({'msg':'followed...!'},status=HTTP_201_CREATED)
+            return Response({'msg': 'followed...!'}, status=HTTP_201_CREATED)
 
 
         except Exception as e:
             print(e)
-            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
+            return Response({'msg': 'something went wrong'}, status=HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            unfollow = Followers.objects.filter(followers_id=data.get('followers_id'))
+            if not unfollow.exists():
+                return Response({'alredy unfollwed...'}, status=HTTP_400_BAD_REQUEST)
+            unfollow[0].delete()
+            return Response({'msg': 'unfollowed...'}, status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'msg': 'something went wrong '}, status=HTTP_400_BAD_REQUEST)
+
 
 class FollowersCount(viewsets.ViewSet):
-    def list(self,request,*args,**kwargs):
-        obj = Followers.objects.values('profile_id').annotate(count=Count('user_id'))
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        obj = Followers.objects.filter(followers_id__user=request.user).values('user_id').annotate(count=Count('user_id'))
+        obj = Followers.objects.filter(user_id= request.user).values('user_id').annotate(count=Count('user_id'))
         return Response(obj)
+
+class FollowingViewSet(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def list(self,request,*args,**kwargs):
+        obj = Followers.objects.filter(user_id=request.user).values('followers_id').annotate(count= Count('user_id'))
+        return Response(obj)
+
+class Profiles_list(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Profile_Page.objects.all()
+    serializer_class = Profile_Page_Serializer
+    filter_backends = [SearchFilter]
+    search_fields = ['$name']
+
+
+    def get_queryset(self):
+        queryset = Profile_Page.objects.all()
+        username = self.request.query_params.get('name')
+        if username is not None:
+            queryset = queryset.filter(Profile_Page__name=username)
+        return queryset
+
+class CommentsViewset(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            user_id = request.user
+
+            Comments.objects.create(user_id=Profile.objects.get(username = user_id),
+                                    post_id = Posts.objects.get(uuid = data.get('post_id')),
+                                    message = data.get('message'))
+            return Response({'msg':'comment is posted '},status=HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'something went wrong'},status=HTTP_400_BAD_REQUEST)
+
+
+    def list(self,request,*args,**kwargs):
+        try:
+            object = Comments.objects.all()
+            serializer = CommentSerializer(object,many=True).data
+            return Response(serializer)
+
+        except Exception as e:
+            print(e)
+            return Response(status=HTTP_400_BAD_REQUEST)
 
 
 
