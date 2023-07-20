@@ -21,9 +21,9 @@ class ProfileView(viewsets.ViewSet):
 
 
     def list(self, request, *args, **kwargs):
-        obj = Profile_Page.objects.filter(user=request.user)
+        obj = Profile_Page.objects.filter(user=request.user).values_list('uuid','name')
         sr = Profile_Page_Serializer(obj, many=True)
-        return Response(sr.data, status=HTTP_200_OK)
+        return Response(obj)
 
     def create(self, request, *args, **kwargs):
         data = request.data
