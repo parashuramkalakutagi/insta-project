@@ -12,6 +12,8 @@ from rest_framework.mixins import UpdateModelMixin
 from rest_framework.generics import GenericAPIView
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import UpdateAPIView
+from  django.db.models import Count,Max,Min,Avg,Sum,SET
+from django.db.models import Q , F
 
 
 class ProfileView(viewsets.ViewSet):
@@ -73,14 +75,24 @@ class POST_LIST(viewsets.ViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            obj = Posts.objects.all()
-            sr = PostSerializer(obj, many=True)
-            return Response(sr.data, status=HTTP_200_OK)
+            obj = Posts.objects.all().values_list('Profile_id','post')
+            return Response(obj, status=HTTP_200_OK)
 
         except Exception as e:
             print(e)
             return Response({'msg': 'something went wrong '}, status=HTTP_400_BAD_REQUEST)
 
+class PostCountViewset(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def list(self,request):
+        try:
+            object = Posts.objects.filter(user_id= request.user).values('Profile_id').annotate(count = Count('post'))
+            return Response(object)
+        except Exception as e:
+            print(e)
+            return Response(status=HTTP_400_BAD_REQUEST)
 
 class VideoPostViewset(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
@@ -207,7 +219,6 @@ class FollowersCount(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        obj = Followers.objects.filter(followers_id__user=request.user).values('user_id').annotate(count=Count('user_id'))
         obj = Followers.objects.filter(user_id= request.user).values('user_id').annotate(count=Count('user_id'))
         return Response(obj)
 
