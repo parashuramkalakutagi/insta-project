@@ -38,18 +38,12 @@ class ProfileView(viewsets.ViewSet):
 
 
 
-
-
-
-
-
-
 class PostView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        obj = Posts.objects.filter(user_id=request.user)
+        obj = Posts.objects.filter(user_id=request.user).values_list('Profile_id','post')
         sr = PostSerializer(obj, many=True)
         return Response(sr.data, status=HTTP_200_OK)
 
@@ -88,8 +82,9 @@ class PostCountViewset(viewsets.ViewSet):
 
     def list(self,request):
         try:
-            object = Posts.objects.filter(user_id= request.user).values('Profile_id').annotate(count = Count('post'))
+            object = Posts.objects.filter(user_id= request.user).values('Profile_id').aggregate(total_posts= Count('post'))
             return Response(object)
+
         except Exception as e:
             print(e)
             return Response(status=HTTP_400_BAD_REQUEST)
@@ -219,16 +214,57 @@ class FollowersCount(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        obj = Followers.objects.filter(user_id= request.user).values('user_id').annotate(count=Count('user_id'))
+        obj = Followers.objects.filter(user_id= request.user).values('user_id').annotate(followers=Count('user_id'))
         return Response(obj)
 
+class Followers_ids(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def list(self,request):
+        try:
+            object = Followers.objects.filter(user_id = request.user).values_list('followers_id')
+            return Response(object)
+
+        except Exception as e:
+            print(e)
+
+class Following_ids(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def list(self,request):
+        try:
+            object = Following.objects.filter(user_id = request.user).values_list('following_id')
+            return Response(object,status=HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response({'msg':'400 bad request'},status=HTTP_400_BAD_REQUEST)
+
+ 
 class FollowingViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def list(self,request,*args,**kwargs):
-        obj = Followers.objects.filter(user_id=request.user).values('followers_id').annotate(count= Count('user_id'))
-        return Response(obj)
+        try:
+            obj = Following.objects.filter(user_id=request.user).values('user_id').annotate(
+                following=Count('following_id'))
+            return Response(obj,status=HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'400 '},status=HTTP_400_BAD_REQUEST)
+
+
+    def create(self,request,*args,**kwargs):
+        try:
+            Following.objects.create(user_id = request.user,
+                                     following_id = Profile_Page.objects.get(uuid = request.data.get('following_id')))
+            return Response({'msg':'following ...!'},status=HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'msg':'400  bad request'},status=HTTP_400_BAD_REQUEST)
 
 class Profiles_list(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]

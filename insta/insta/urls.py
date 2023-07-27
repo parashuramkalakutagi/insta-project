@@ -30,6 +30,8 @@ home.register('FollowersCount',FollowersCount,basename='FollowersCount')
 home.register('FollowingCount',FollowingViewSet,basename='FollowingCount')
 home.register('CommentsViewset',CommentsViewset,basename='CommentsViewset')
 home.register('PostCountViewset',PostCountViewset,basename='PostCountViewset')
+home.register('Followers_ids',Followers_ids,basename='Followers_ids')
+home.register('Following_ids',Following_ids,basename='Following_ids')
 
 
 
