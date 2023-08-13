@@ -32,6 +32,8 @@ home.register('CommentsViewset',CommentsViewset,basename='CommentsViewset')
 home.register('PostCountViewset',PostCountViewset,basename='PostCountViewset')
 home.register('Followers_ids',Followers_ids,basename='Followers_ids')
 home.register('Following_ids',Following_ids,basename='Following_ids')
+home.register('StoriesView',StoriesView,basename='StoriesView')
+
 
 
 

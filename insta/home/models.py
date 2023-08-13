@@ -1,6 +1,9 @@
 from django.db import models
 import uuid
 from accounts.models import Profile
+from datetime import timedelta
+from django.utils import timezone
+import datetime
 
 class BaseModel(models.Model):
     uuid = models.UUIDField(primary_key=True,editable=False,default=uuid.uuid4)
@@ -70,6 +73,12 @@ class Comments(models.Model):
     message = models.CharField(max_length=150)
 
 
+class Stories(models.Model):
+    user_id = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    Profile_id = models.ForeignKey(Profile_Page,on_delete=models.CASCADE)
+    file = models.FileField(upload_to='stories')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expiridate = models.DateTimeField()
 
 
 

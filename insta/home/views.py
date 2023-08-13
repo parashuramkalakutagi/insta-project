@@ -14,7 +14,9 @@ from rest_framework.filters import SearchFilter
 from rest_framework.generics import UpdateAPIView
 from  django.db.models import Count,Max,Min,Avg,Sum,SET
 from django.db.models import Q , F
-
+from datetime import timedelta
+from django.utils import timezone
+import datetime
 
 class ProfileView(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
@@ -312,4 +314,23 @@ class CommentsViewset(viewsets.ViewSet):
 
 
 
+
+class StoriesView(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def create(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            user_id  = request.user
+            Stories.objects.create(user_id = Profile.objects.get(username = user_id),
+                                   Profile_id = Profile_Page.objects.get(uuid = request.data.get('Profile_id')),
+                                   file = data.get('file'),
+                                   expiridate = datetime.datetime.now() + datetime.timedelta(hours=24),
+                                   ),
+
+            return Response({'data':{'msg':'story uploded...'}},status=HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'error':e},status=HTTP_400_BAD_REQUEST)
 
